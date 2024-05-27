@@ -1,7 +1,7 @@
 study("Log Bollinger Bands %BB Oscillator [Krypt]", shorttitle="Log BB %B")
 
-length=input(20, title="Length")
-lengthMA=input(13, title="MA Length")
+length=input(60, title="Length")
+lengthMA=input(60, title="MA Length")
 stdDev = input(3.1416, title="StdDev")
 src=input(close, type=source, title="Source")
 showMA = input(false, title="Show Moving Average")
@@ -9,13 +9,15 @@ showMA = input(false, title="Show Moving Average")
 price = log(src)
 xsd = stdev(price, length)
 num = price + stdDev * xsd - sma(price, length)
-den = 2 * stdDev * xsd
-sig = num / den
-ma = ema(num, lengthMA) / ema(den, lengthMA)
+bbWidth = 2 * stdDev * xsd
+sig = num / bbWidth
+ma = ema(num, lengthMA) / ema(bbWidth, lengthMA)
 
 ob=hline(1, color=#c0c0c0)
 os=hline(0, color=#c0c0c0)
 fill(ob, os, color=#138484)
 
-plot(sig, color=#138484, linewidth=1, transp=0, title="Bollinger Bands %B")
-plot(showMA ? ma : na, color=red, title="Moving Average")
+plot(sig, color=#fd9418, linewidth=1, transp=0, title="Bollinger Bands %B")
+plot(showMA ? ma : na, title="Moving Average")
+plot(showMA ? (ma-0.5)*sig : na, color=white, title="Weighted Moving Average")
+plot(showMA ? (ma-0.5)*sig*xsd : na, color=white, title="Weighted Moving Average")

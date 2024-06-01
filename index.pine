@@ -10,25 +10,30 @@ price = log(src)
 xsd = stdev(price, length)
 num = price + stdDev * xsd - sma(price, length)
 bbWidth = 2 * stdDev * xsd
-zScoreOf_lnOf_price = (num / bbWidth) - 0.5
+zScoreOf_lnOf_price = 2 * (num / bbWidth) - 1
 ema = ema(zScoreOf_lnOf_price, lengthMA)
 // ma = (ema(num, lengthMA) / ema(bbWidth, lengthMA) ) - 0.5
 ma = sma(zScoreOf_lnOf_price, lengthMA)
 
+deltaOf_lnOf_price = price[0]-price[1]
 
-zero=hline(0, color=#c0c0c0, linestyle=solid)
-ob=hline(0.5, color=#c0c0c0)
-os=hline(-0.5, color=#c0c0c0)
+zero=hline(0, color=#808080, linestyle=dotted)
+ob=hline(1, color=#c0c0c0)
+os=hline(-1, color=#c0c0c0)
 fill(ob, os, color=#138484)
 
-myMetric = ema( ((zScoreOf_lnOf_price + ema) * (1+abs(ema-ma)) / (1+xsd)) + zScoreOf_lnOf_price, lengthMA)
+// myMetric = ema( ((zScoreOf_lnOf_price + ema) * (1+abs(ema-ma)) / (1+xsd)) + zScoreOf_lnOf_price, 187) // lengthMA)
+myMetric = ema( (zScoreOf_lnOf_price * (1 + abs(ema-ma)) / xsd), 187) // lengthMA)
 
-plot(zScoreOf_lnOf_price, color=#fd9418, linewidth=1, transp=0, title="Bollinger Bands %B")
-plot(ma, title="Moving Average")
+plot(zScoreOf_lnOf_price, color=white, linewidth=1, transp=0, title="Bollinger Bands %B")
+plot(ma, color=#0000ff, title="Moving Average")
 // plot(showMA ? (ma-0.5)*zScoreOf_lnOf_price : na, color=gray, title="Weighted Moving Average")
 // plot(showMA ? (ma-0.5)*zScoreOf_lnOf_price/log(xsd) : na, color=white, title="Weighted Moving Average")
 // plot(showMA ? (ma)*zScoreOf_lnOf_price/xsd : na, color=blue, title="Weighted Moving Average")
 plot(ema, color=#00ffff, title="EMA")
-plot(ema(ema-ma, lengthMA)/xsd, color=#ff00ff, title="EMA(EMA-MA)")
-plot(myMetric, color=#aaff00, title="MA(EMA-MA)")
-plot(highest(zScoreOf_lnOf_price, lengthMA), color=#3300ff, title="Max")
+plot(ema(ema-ma, lengthMA) / xsd, color=#ff00ff, title="MA(EMA-MA)")
+plot(ema(cum(ema-ma), lengthMA) * xsd, color=#ff8800, title="MA(EMA-MA)")
+plot(myMetric, color=green, title="MA(EMA-MA)")
+// plot(highest(zScoreOf_lnOf_price, lengthMA), color=#3300ff, title="Max")
+// plot(cum(ma[0]-ma[1]), color=#0000ff, title="Max")
+plot(cum(deltaOf_lnOf_price / xsd) * xsd, color=yellow, title="Max")

@@ -7,9 +7,9 @@ src=input(close, type=source, title="Source")
 showMA = input(false, title="Show Moving Average")
 
 price = log(src)
-xsd = stdev(price, length)
-num = price + stdDev * xsd - sma(price, length)
-bbWidth = 2 * stdDev * xsd
+stdDevOf_lnOf_price = stdev(price, length)
+num = price + stdDev * stdDevOf_lnOf_price - sma(price, length)
+bbWidth = 2 * stdDev * stdDevOf_lnOf_price
 zScoreOf_lnOf_price = 2 * (num / bbWidth) - 1
 emaOf_zScore = ema(zScoreOf_lnOf_price, lengthMA)
 // maOf_zScore = (ema(num, lengthMA) / ema(bbWidth, lengthMA) ) - 0.5
@@ -22,19 +22,20 @@ ob=hline(1, color=#c0c0c0)
 os=hline(-1, color=#c0c0c0)
 fill(ob, os, color=#138484)
 
-// emaOf_proportionalZScoreToStdDev = ema( ((zScoreOf_lnOf_price + emaOf_zScore) * (1+abs(emaOf_zScore-maOf_zScore)) / (1+xsd)) + zScoreOf_lnOf_price, 187) // lengthMA)
-emaOf_proportionalZScoreToStdDev = ema( zScoreOf_lnOf_price / xsd , lengthMA) * ( 1 + abs(emaOf_zScore - maOf_zScore) ) * ( 1 + abs(emaOf_zScore) ) * ( 1 + abs(maOf_zScore) )* xsd
+// emaOf_proportionalZScoreToStdDev = ema( ((zScoreOf_lnOf_price + emaOf_zScore) * (1+abs(emaOf_zScore-maOf_zScore)) / (1+stdDevOf_lnOf_price)) + zScoreOf_lnOf_price, 187) // lengthMA)
+emaOf_proportionalZScoreToStdDev = ema( zScoreOf_lnOf_price * ( 1 + abs(emaOf_zScore - maOf_zScore) ) * ( 1 + abs(emaOf_zScore) ) * ( 1 + abs(maOf_zScore) ) * ( 1 + abs(stdDevOf_lnOf_price)) , lengthMA) // stdDevOf_lnOf_price
 
 plot(zScoreOf_lnOf_price, color=white, linewidth=1, transp=0, title="Bollinger Bands %B")
 plot(maOf_zScore, color=#0000ff, title="Moving Average")
 // plot(showMA ? (maOf_zScore-0.5)*zScoreOf_lnOf_price : na, color=gray, title="Weighted Moving Average")
-// plot(showMA ? (maOf_zScore-0.5)*zScoreOf_lnOf_price/log(xsd) : na, color=white, title="Weighted Moving Average")
-// plot(showMA ? (maOf_zScore)*zScoreOf_lnOf_price/xsd : na, color=blue, title="Weighted Moving Average")
+// plot(showMA ? (maOf_zScore-0.5)*zScoreOf_lnOf_price/log(stdDevOf_lnOf_price) : na, color=white, title="Weighted Moving Average")
+// plot(showMA ? (maOf_zScore)*zScoreOf_lnOf_price/stdDevOf_lnOf_price : na, color=blue, title="Weighted Moving Average")
 plot(emaOf_zScore, color=#00ffff, title="EMA")
-plot(ema(emaOf_zScore-maOf_zScore, lengthMA) / xsd, color=#ff00ff, title="MA(EMA-MA)")
-// plot(ema(cum(emaOf_zScore-maOf_zScore), lengthMA) * xsd, color=#ff8800, title="MA(EMA-MA)")
-plot(cum(emaOf_zScore-maOf_zScore) * emaOf_zScore * maOf_zScore * xsd, color=orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+plot(ema(emaOf_zScore-maOf_zScore, lengthMA) / stdDevOf_lnOf_price, color=#ff00ff, title="MA(EMA-MA)")
+// plot(ema(cum(emaOf_zScore-maOf_zScore), lengthMA) * stdDevOf_lnOf_price, color=#ff8800, title="MA(EMA-MA)")
+plot(cum(emaOf_zScore-maOf_zScore) * emaOf_zScore * maOf_zScore * stdDevOf_lnOf_price, color=orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 plot(emaOf_proportionalZScoreToStdDev, color=green, title="EMA of Proportional Z-Score to StdDev Ratio")
 // plot(highest(zScoreOf_lnOf_price, lengthMA), color=#3300ff, title="Max")
 // plot(cum(maOf_zScore[0]-maOf_zScore[1]), color=#0000ff, title="Max")
-plot(cum(deltaOf_lnOf_price * emaOf_zScore * maOf_zScore / xsd) * xsd, color=yellow, title="Max")
+// plot(cum(deltaOf_lnOf_price * ( 1 + abs(emaOf_zScore - maOf_zScore) ) * ( 1 + abs(emaOf_zScore) ) * ( 1 + abs(maOf_zScore) ) * ( 1 + abs(stdDevOf_lnOf_price)) / stdDevOf_lnOf_price) * abs(emaOf_zScore - maOf_zScore) * abs(emaOf_zScore) * abs(maOf_zScore) * stdDevOf_lnOf_price, color=yellow, title="Max")
+plot(cum(deltaOf_lnOf_price * ( 1 + abs(emaOf_zScore - maOf_zScore) ) * ( 1 + abs(emaOf_zScore) ) * ( 1 + abs(maOf_zScore) ) / stdDevOf_lnOf_price), color=yellow, title="Delta to StdDev")

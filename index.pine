@@ -32,13 +32,13 @@ productOf_deltasOf_lnTo_emaToMaOfLn = deltaOf_lnOf_price * abs(deltaOf_emaToMa)
 deltaRatioOf_lnTo_emaToMaOfLn = deltaOf_lnOf_price / abs(deltaOf_emaToMa)
 
 inflators = ( 1 + abs(deltaOf_ema) ) * ( 1 + abs(deltaOf_lnOf_price) ) * ( 1 + abs(deltaOf_emaToMa) ) * ( 1 + abs(emaOf_zScore) ) * ( 1 + abs(maOf_zScore) ) * ( 1 + stdDevOf_lnOf_price)
-deflators = deltaOf_lnOf_price * abs(deltaOf_emaToMa) * abs(emaOf_zScore) * abs(maOf_zScore) * stdDevOf_lnOf_price
+deflators = abs(deltaOf_lnOf_price) * (stdDevOf_lnOf_price) * abs(emaOf_zScore) * abs(maOf_zScore) * abs(deltaOf_emaToMa)
 positiveDeflators = abs(deflators)
 
 // emaOf_inflatedZScore = ema( ((zScoreOf_lnOf_price + emaOf_zScore) * (1+abs(emaOf_zScore-maOf_zScore)) / (1+stdDevOf_lnOf_price)) + zScoreOf_lnOf_price, 187) // lengthMA)
 emaOf_inflatedZScore = ema( zScoreOf_lnOf_price * inflators, lengthMA) // stdDevOf_lnOf_price
 
-ratioOf_cumSumTo_ema = positiveDeflators * cum(deltaOf_lnOf_price) / cum(productOf_deltasOf_lnTo_ema)
+ratioOf_cumSumTo_ema = inflators * cum(productOf_deltasOf_lnTo_ema) * cum(deltaOf_emaToMa)
 ratioOf_cumSumTo_emaToMa = cum(productOf_deltasOf_lnTo_ema) / ema(deltaRatioOf_lnTo_emaToMaOfLn, lengthMA)
 invProp_deltaToStdDev = deltaOf_lnOf_price / stdDevOf_lnOf_price
 
@@ -49,9 +49,10 @@ plot(maOf_zScore, color=#0000ff, title="Moving Average")
 // plot(showMA ? (maOf_zScore)*zScoreOf_lnOf_price/stdDevOf_lnOf_price : na, color=blue, title="Weighted Moving Average")
 plot(emaOf_zScore, color=#00ffff, title="EMA")
 
-plot(ema(emaOf_zScore-maOf_zScore, lengthMA) / stdDevOf_lnOf_price, color=#ff00ff, title="MA(EMA-MA)")
+plot(deltaOf_emaToMa * inflators, color=orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+plot(cum(deltaOf_emaToMa) * deflators, color=#ff00ff, title="MA(EMA-MA)")
+
 // plot(ema(cum(emaOf_zScore-maOf_zScore), lengthMA) * stdDevOf_lnOf_price, color=#ff8800, title="MA(EMA-MA)")
-plot(multiplier * cum(deltaOf_emaToMa) * positiveDeflators, color=orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 plot(emaOf_inflatedZScore, color=green, title="EMA of Proportional Z-Score to StdDev Ratio")
 // plot(highest(zScoreOf_lnOf_price, lengthMA), color=#3300ff, title="Max")
 // plot(cum(maOf_zScore[0]-maOf_zScore[1]), color=#0000ff, title="Max")

@@ -21,25 +21,27 @@ ob=hline(1, color=#c0c0c0)
 os=hline(-1, color=#c0c0c0)
 fill(ob, os, color=#138484)
 
-deltaOf_lnOf_price = price[0] - price[1]
-deltaOf_ema = emaOf_zScore[0] - emaOf_zScore[1]
-deltaOf_emaToMa = emaOf_zScore - maOf_zScore
-
-productOf_deltasOf_lnTo_ema = deltaOf_lnOf_price * abs(deltaOf_ema)
-deltaRatioOf_lnTo_ema = deltaOf_lnOf_price / abs(deltaOf_ema)
-
-productOf_deltasOf_lnTo_emaToMaOfLn = deltaOf_lnOf_price * abs(deltaOf_emaToMa)
-deltaRatioOf_lnTo_emaToMaOfLn = deltaOf_lnOf_price / abs(deltaOf_emaToMa)
 
 inflators = ( 1 + abs(deltaOf_ema) ) * ( 1 + abs(deltaOf_lnOf_price) ) * ( 1 + abs(deltaOf_emaToMa) ) * ( 1 + abs(emaOf_zScore) ) * ( 1 + abs(maOf_zScore) ) * ( 1 + stdDevOf_lnOf_price)
 deflators = abs(deltaOf_lnOf_price) * (stdDevOf_lnOf_price) * abs(emaOf_zScore) * abs(maOf_zScore) * abs(deltaOf_emaToMa)
 positiveDeflators = abs(deflators)
 
+
+deltaOf_lnOf_price = price[0] - price[1]
+deltaOf_ema = emaOf_zScore[0] - emaOf_zScore[1]
+deltaOf_emaToMa = emaOf_zScore - maOf_zScore
+
+productOf_deltasOf_ln_emaOfLn = deltaOf_lnOf_price * abs(deltaOf_ema)
+deltaRatioOf_lnTo_ema = deltaOf_lnOf_price / abs(deltaOf_ema)
+
+productOf_deltasOf_ln_emaOfLnToMaOfLn = deltaOf_lnOf_price * abs(deltaOf_emaToMa)
+deltaRatioOf_lnTo_emaToMaOfLn = ( (1 + abs(deltaOf_lnOf_price)) / (1 + abs(deltaOf_emaToMa)) - 1 ) * inflators
+
 // emaOf_inflatedZScore = ema( ((zScoreOf_lnOf_price + emaOf_zScore) * (1+abs(emaOf_zScore-maOf_zScore)) / (1+stdDevOf_lnOf_price)) + zScoreOf_lnOf_price, 187) // lengthMA)
 emaOf_inflatedZScore = ema( zScoreOf_lnOf_price * inflators, lengthMA) // stdDevOf_lnOf_price
 
-ratioOf_cumSumTo_ema = inflators * cum(productOf_deltasOf_lnTo_ema) * cum(deltaOf_emaToMa)
-ratioOf_cumSumTo_emaToMa = cum(productOf_deltasOf_lnTo_ema) / ema(deltaRatioOf_lnTo_emaToMaOfLn, lengthMA)
+
+ratioOf_cumSumTo_emaToMa = cum(productOf_deltasOf_ln_emaOfLn) / ema(deltaRatioOf_lnTo_emaToMaOfLn, lengthMA)
 invProp_deltaToStdDev = deltaOf_lnOf_price / stdDevOf_lnOf_price
 
 plot(zScoreOf_lnOf_price, color=white, linewidth=1, transp=0, title="Bollinger Bands %B")
@@ -49,15 +51,16 @@ plot(maOf_zScore, color=#0000ff, title="Moving Average")
 // plot(showMA ? (maOf_zScore)*zScoreOf_lnOf_price/stdDevOf_lnOf_price : na, color=blue, title="Weighted Moving Average")
 plot(emaOf_zScore, color=#00ffff, title="EMA")
 
-plot(deltaOf_emaToMa * inflators, color=orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
-plot(cum(deltaOf_emaToMa) * deflators, color=#ff00ff, title="MA(EMA-MA)")
+inflated_relativeForce_reInflatedByStdDev = inflators * log( (1 + (emaOf_zScore)) / (1 + (maOf_zScore) ) ) * (1 + stdDevOf_lnOf_price)
+plot(inflated_relativeForce_reInflatedByStdDev + emaOf_inflatedZScore, color=orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+plot(cum(deltaOf_emaToMa) * stdDevOf_lnOf_price / (2 * multiplier), color=#ff00ff, title="MA(EMA-MA)")
 
 // plot(ema(cum(emaOf_zScore-maOf_zScore), lengthMA) * stdDevOf_lnOf_price, color=#ff8800, title="MA(EMA-MA)")
-plot(emaOf_inflatedZScore, color=green, title="EMA of Proportional Z-Score to StdDev Ratio")
+plot(emaOf_inflatedZScore, color=green, title="EMA of Proportional Z-Score to StdDev Ratio", linewidth = 2)
 // plot(highest(zScoreOf_lnOf_price, lengthMA), color=#3300ff, title="Max")
 // plot(cum(maOf_zScore[0]-maOf_zScore[1]), color=#0000ff, title="Max")
 // plot(cum(deltaOf_lnOf_price * ( 1 + abs(emaOf_zScore - maOf_zScore) ) * ( 1 + abs(emaOf_zScore) ) * ( 1 + abs(maOf_zScore) ) * ( 1 + abs(stdDevOf_lnOf_price)) / stdDevOf_lnOf_price) * abs(emaOf_zScore - maOf_zScore) * abs(emaOf_zScore) * abs(maOf_zScore) * stdDevOf_lnOf_price, color=yellow, title="Max")
 
 // plot(deltaRatioOf_lnTo_emaToMaOfLn, color=yellow, title="Delta to Inflators", linewidth=2)
-plot(ratioOf_cumSumTo_ema, color=yellow, title="Delta to Inflators")
+plot(deltaRatioOf_lnTo_emaToMaOfLn, color=yellow, title="Delta to Inflators")
 // plot(invProp_deltaToStdDev, color=black, title="Delta to StdDev")

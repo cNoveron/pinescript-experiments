@@ -27,11 +27,12 @@ fill(ob, os, color=color.new(#138484, 90))
 deltaOf_lnOf_price = price[0] - price[1]
 deltaOf_zScoreOf_lnOf_price = zScoreOf_lnOf_price[0] - zScoreOf_lnOf_price[1]
 deltaOf_ema = emaOf_zScore[0] - emaOf_zScore[1]
-deltaOf_emaToMa = emaOf_zScore - maOf_zScore
+
+distanceOf_emaToMa = emaOf_zScore - maOf_zScore
 
 
-inflators = ( 1 + math.abs(deltaOf_ema) ) * ( 1 + math.abs(deltaOf_lnOf_price) ) * ( 1 + math.abs(deltaOf_emaToMa) ) * ( 1 + math.abs(emaOf_zScore) ) * ( 1 + math.abs(maOf_zScore) ) * ( 1 + stdDevOf_lnOf_price)
-deflators = math.abs(deltaOf_lnOf_price) * (stdDevOf_lnOf_price) * math.abs(emaOf_zScore) * math.abs(maOf_zScore) * math.abs(deltaOf_emaToMa)
+inflators = ( 1 + math.abs(deltaOf_ema) ) * ( 1 + math.abs(deltaOf_lnOf_price) ) * ( 1 + math.abs(distanceOf_emaToMa) ) * ( 1 + math.abs(emaOf_zScore) ) * ( 1 + math.abs(maOf_zScore) ) * ( 1 + stdDevOf_lnOf_price)
+deflators = math.abs(deltaOf_lnOf_price) * (stdDevOf_lnOf_price) * math.abs(emaOf_zScore) * math.abs(maOf_zScore) * math.abs(distanceOf_emaToMa)
 positiveDeflators = math.abs(deflators)
 
 
@@ -39,33 +40,27 @@ positiveDeflators = math.abs(deflators)
 productOf_deltasOf_ln_ema = deltaOf_lnOf_price * math.abs(deltaOf_ema)
 deltaRatioOf_lnTo_ema = deltaOf_lnOf_price / math.abs(deltaOf_ema)
 
-productOf_deltasOf_ln_emaToma = deltaOf_lnOf_price * math.abs(deltaOf_emaToMa)
-deltaRatioOf_lnTo_emaToma = -math.sign(deltaOf_zScoreOf_lnOf_price) *( math.log(math.abs(deltaOf_zScoreOf_lnOf_price)) ) / ( math.log(math.abs(deltaOf_ema)))
+productOf_deltasOf_ln_emaToma = deltaOf_lnOf_price * math.abs(distanceOf_emaToMa)
 
 // emaOf_inflatedZScore = ta.ema( ((zScoreOf_lnOf_price + emaOf_zScore) * (1+math.abs(emaOf_zScore-maOf_zScore)) / (1+stdDevOf_lnOf_price)) + zScoreOf_lnOf_price, 187) // lengthMA)
 emaOf_inflatedZScore = ta.ema( zScoreOf_lnOf_price * inflators, lengthMA) // stdDevOf_lnOf_price
 
-
-ratioOf_cumSumTo_emaToMa = ta.cum(productOf_deltasOf_ln_ema) / ta.ema(deltaRatioOf_lnTo_emaToma, lengthMA)
 invProp_deltaToStdDev = deltaOf_lnOf_price / stdDevOf_lnOf_price
 
 plot(zScoreOf_lnOf_price, color=color.white, linewidth=1, title="Bollinger Bands %B")
 plot(maOf_zScore, color=#0000ff, title="Moving Average")
-// plot(showMA ? (maOf_zScore-0.5)*zScoreOf_lnOf_price : na, color=gray, title="Weighted Moving Average")
+plot(showMA ? (maOf_zScore-0.5)*zScoreOf_lnOf_price : na, color=color.black, title="Weighted Moving Average")
 // plot(showMA ? (maOf_zScore-0.5)*zScoreOf_lnOf_price/math.log(stdDevOf_lnOf_price) : na, color=white, title="Weighted Moving Average")
 // plot(showMA ? (maOf_zScore)*zScoreOf_lnOf_price/stdDevOf_lnOf_price : na, color=blue, title="Weighted Moving Average")
 plot(emaOf_zScore, color=#00ffff, title="EMA of Z-Score")
 
-relativeForce_reInflatedByStdDev = math.log( (1 + (emaOf_zScore)) / (1 + (maOf_zScore) ) ) * (1 + stdDevOf_lnOf_price)
+relativeForce_reInflatedByStdDev = math.sign(math.abs(emaOf_zScore)) * math.log(math.abs(emaOf_zScore)) / math.log(math.abs(maOf_zScore) ) * stdDevOf_lnOf_price
 plot(inflators * relativeForce_reInflatedByStdDev + emaOf_inflatedZScore, color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
-plot(ta.cum(deltaOf_emaToMa) * stdDevOf_lnOf_price / (2 * multiplier), color=#ff00ff, title="MA(EMA-MA)")
 
-// plot(ta.ema(cum(emaOf_zScore-maOf_zScore), lengthMA) * stdDevOf_lnOf_price, color=#ff8800, title="MA(EMA-MA)")
+emaOf_cumOf_distanceOf_emaToMa = ta.ema(ta.cum(distanceOf_emaToMa), lengthMA)
+plot(math.log(math.log(1 + math.abs(emaOf_cumOf_distanceOf_emaToMa))) * stdDevOf_lnOf_price * inflators, color=#ff00ff, title="MA(EMA-MA)")
+
 plot(emaOf_inflatedZScore, color=color.green, title="EMA of Proportional Z-Score to StdDev Ratio", linewidth = 2)
-// plot(highest(zScoreOf_lnOf_price, lengthMA), color=#3300ff, title="Max")
-// plot(cum(maOf_zScore[0]-maOf_zScore[1]), color=#0000ff, title="Max")
-// plot(cum(deltaOf_lnOf_price * ( 1 + math.abs(emaOf_zScore - maOf_zScore) ) * ( 1 + math.abs(emaOf_zScore) ) * ( 1 + math.abs(maOf_zScore) ) * ( 1 + math.abs(stdDevOf_lnOf_price)) / stdDevOf_lnOf_price) * math.abs(emaOf_zScore - maOf_zScore) * math.abs(emaOf_zScore) * math.abs(maOf_zScore) * stdDevOf_lnOf_price, color=yellow, title="Max")
 
-// plot(deltaRatioOf_lnTo_emaToma, color=yellow, title="Delta to Inflators", linewidth=2)
-plot(ta.ema(math.exp(deltaRatioOf_lnTo_emaToma) -1, lengthMA), color=color.yellow, title="Delta to Inflators")
-// plot(invProp_deltaToStdDev, color=black, title="Delta to StdDev")
+deltaRatioOf_lnTo_emaToma = -math.sign(deltaOf_zScoreOf_lnOf_price) * math.log(math.abs(deltaOf_zScoreOf_lnOf_price)) / math.log(math.abs(deltaOf_ema))
+plot(math.log(ta.ema(math.exp(deltaRatioOf_lnTo_emaToma) -1, lengthMA)) + zScoreOf_lnOf_price + emaOf_inflatedZScore * stdDevOf_lnOf_price + emaOf_zScore + maOf_zScore + 1, color=color.yellow, title="Delta to Inflators")

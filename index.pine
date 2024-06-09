@@ -43,7 +43,7 @@ deltaRatioOf_lnTo_ema = deltaOf_lnOf_price / math.abs(deltaOf_ema)
 productOf_deltasOf_ln_emaToma = deltaOf_lnOf_price * math.abs(distanceOf_emaToMa)
 
 // emaOf_inflatedZScore = ta.ema( ((zScoreOf_lnOf_price + emaOf_zScore) * (1+math.abs(emaOf_zScore-maOf_zScore)) / (1+stdDevOf_lnOf_price)) + zScoreOf_lnOf_price, 187) // lengthMA)
-emaOf_inflatedZScore = ta.ema( zScoreOf_lnOf_price * inflators, lengthMA) // stdDevOf_lnOf_price
+
 
 invProp_deltaToStdDev = deltaOf_lnOf_price / stdDevOf_lnOf_price
 
@@ -52,19 +52,27 @@ plot(zScoreOf_lnOf_price, color=color.white, linewidth=1, title="Z-Score of ")
 plot(maOf_zScore, color=#0000ff, title="Moving Average")
 plot(emaOf_zScore, color=#00ffff, title="EMA of Z-Score")
 
+emaOf_inflatedZScore = ta.ema( zScoreOf_lnOf_price * inflators, lengthMA) // stdDevOf_lnOf_price
 plot(emaOf_inflatedZScore, color=color.green, title="EMA of Proportional Z-Score to StdDev Ratio", linewidth = 2)
 
 
-deltaRatioOf_zScore_emaToMa = -math.sign(deltaOf_zScoreOf_lnOf_price) * math.log(math.abs(deltaOf_zScoreOf_lnOf_price)) / math.log(math.abs(deltaOf_ema))
-sumOf_massagedDeltaRatio_otherInflators = math.log(ta.ema(math.exp(deltaRatioOf_zScore_emaToMa) -1, lengthMA)) + zScoreOf_lnOf_price + emaOf_inflatedZScore * stdDevOf_lnOf_price + emaOf_zScore + maOf_zScore + 1
-plot(sumOf_massagedDeltaRatio_otherInflators, color=color.yellow, title="Delta to Inflators")
+prettyGoodTrendChangeDetector = ta.ema(ta.cum(distanceOf_emaToMa), lengthMA) - math.log(1 + math.abs(zScoreOf_lnOf_price))
+massaged_prettyGoodTrendChangeDetector_BTC = ta.ema(math.log(math.log(1 + math.abs(prettyGoodTrendChangeDetector))) * inflators, lengthMA)
+massaged_prettyGoodTrendChangeDetector = ta.ema(math.exp(math.log(math.abs(prettyGoodTrendChangeDetector)) - 1) - 2, lengthMA)
+plot(massaged_prettyGoodTrendChangeDetector, color=#ff00ff, title="(Massaged) Pretty Good Trend Change Detector")
+
+
+logRatioOf_deltas_z_ema = math.log(math.abs(deltaOf_zScoreOf_lnOf_price)) / math.log(math.abs(deltaOf_ema))
+negativeLogRatioOf_z_ema = -math.sign(deltaOf_zScoreOf_lnOf_price) * logRatioOf_deltas_z_ema
+massaged_negativeLogRatioOf_z_ema = math.log(ta.ema(math.exp(negativeLogRatioOf_z_ema) -1, lengthMA)) + emaOf_zScore + maOf_zScore + 1
+plot(massaged_negativeLogRatioOf_z_ema, color=color.yellow, title="Massaged Negative LogRatio of Deltas: z, ema")
+
+exponentialMultiplier = math.exp(emaOf_inflatedZScore * massaged_negativeLogRatioOf_z_ema * stdDevOf_lnOf_price * math.abs(maOf_zScore) * math.abs(emaOf_zScore))
+sumOf_massagedIndicators = ( exponentialMultiplier * (massaged_prettyGoodTrendChangeDetector + massaged_negativeLogRatioOf_z_ema * inflators) * stdDevOf_lnOf_price )
+bakingPowder = -math.log(math.abs(stdDevOf_lnOf_price))
+plot(ta.ema( (ta.ema(sumOf_massagedIndicators, 19) + massaged_negativeLogRatioOf_z_ema) / 2, lengthMA), color=#ff0000, title="Delta to Inflators")
 
 
 relativeForce_reInflatedByStdDev = math.sign(math.abs(emaOf_zScore)) * math.log(math.abs(emaOf_zScore)) / math.log(math.abs(maOf_zScore) ) * stdDevOf_lnOf_price
-cookedUpIndicator = sumOf_massagedDeltaRatio_otherInflators + relativeForce_reInflatedByStdDev + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
-plot(cookedUpIndicator * stdDevOf_lnOf_price, color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
-
-
-prettyGoodTrendChangeDetector = ta.ema(ta.cum(distanceOf_emaToMa), lengthMA) - math.log(1 + math.abs(zScoreOf_lnOf_price))
-massaged_prettyGoodTrendChangeDetector = ta.ema(math.log(math.log(1 + math.abs(prettyGoodTrendChangeDetector))) * inflators, lengthMA)
-plot(massaged_prettyGoodTrendChangeDetector, color=#ff00ff, title="(Massaged) Pretty Good Trend Change Detector")
+cookedUpIndicator = massaged_negativeLogRatioOf_z_ema + relativeForce_reInflatedByStdDev + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
+plot(ta.ema(cookedUpIndicator * stdDevOf_lnOf_price, lengthMA), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")

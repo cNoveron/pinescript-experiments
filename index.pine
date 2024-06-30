@@ -75,6 +75,7 @@ smoothedOut_slappyMath = ta.ema( (ta.ema(sumOf_massagedIndicators, 19) + massage
 plot((ta.ema(emaOf_inflatedZScore, lengthMA)) + (ta.ema(emaOf_inflatedZScore, 187)), color=#ff0000, title="Delta to Inflators")
 
 
-relativeForce_reInflatedByStdDev = math.sign(emaOf_zScore) * math.log(math.abs(emaOf_zScore)) / math.log(math.abs(maOf_zScore) ) * stdDevOf_lnOf_price
-cookedUpIndicator = massaged_negativeLogRatioOf_z_ema + relativeForce_reInflatedByStdDev + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
-plot(ta.ema(cookedUpIndicator * stdDevOf_lnOf_price, lengthMA), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+relativeForce_reInflatedByStdDev = math.log(math.abs(math.min(maOf_zScore, emaOf_zScore))) / math.log(math.abs(math.max(maOf_zScore, emaOf_zScore)))
+cookedUpIndicator = math.sign(math.abs(emaOf_zScore) - math.abs(maOf_zScore)) * relativeForce_reInflatedByStdDev //+ massaged_negativeLogRatioOf_z_ema + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
+plot(ta.ema(cookedUpIndicator, lengthMA), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+//plot(cookedUpIndicator, color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")

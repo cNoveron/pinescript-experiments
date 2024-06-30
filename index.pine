@@ -66,7 +66,8 @@ logRatioOf_deltas_z_ema = math.log(math.abs(deltaOf_zScoreOf_lnOf_price)) / math
 negativeLogRatioOf_z_ema = -math.sign(deltaOf_zScoreOf_lnOf_price) * logRatioOf_deltas_z_ema
 massaged_negativeLogRatioOf_z_ema = (ta.ema(math.exp(negativeLogRatioOf_z_ema) -1, lengthMA)) + emaOf_zScore + maOf_zScore
 bakedUp_negativeLogRatioOf_z_ema = (massaged_negativeLogRatioOf_z_ema + emaOf_zScore + maOf_zScore) * inflators * stdDevOf_lnOf_price
-plot(ta.ema(bakedUp_negativeLogRatioOf_z_ema, 60), color=color.yellow, title="Massaged Negative LogRatio of Deltas: z, ema")
+watteredDownStew = ta.ema(bakedUp_negativeLogRatioOf_z_ema, 60)
+plot(watteredDownStew, color=color.yellow, title="Massaged Negative LogRatio of Deltas: z, ema")
 
 exponentialMultiplier = math.exp(emaOf_inflatedZScore * massaged_negativeLogRatioOf_z_ema * stdDevOf_lnOf_price * math.abs(maOf_zScore) * math.abs(emaOf_zScore))
 sumOf_massagedIndicators = ( exponentialMultiplier * (massaged_prettyGoodTrendChangeDetector + massaged_negativeLogRatioOf_z_ema * inflators) * stdDevOf_lnOf_price )
@@ -75,7 +76,15 @@ smoothedOut_slappyMath = ta.ema( (ta.ema(sumOf_massagedIndicators, 19) + massage
 plot((ta.ema(emaOf_inflatedZScore, lengthMA)) + (ta.ema(emaOf_inflatedZScore, 187)), color=#ff0000, title="Delta to Inflators")
 
 
-relativeForce_reInflatedByStdDev = math.log(math.abs(math.min(maOf_zScore, emaOf_zScore))) / math.log(math.abs(math.max(maOf_zScore, emaOf_zScore)))
-cookedUpIndicator = math.sign(math.abs(emaOf_zScore) - math.abs(maOf_zScore)) * relativeForce_reInflatedByStdDev //+ massaged_negativeLogRatioOf_z_ema + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
+logRatioOf_ema_ma = math.log(math.abs(emaOf_zScore)) / math.log(math.abs(maOf_zScore))
+magnitudeDiffOf_ema_ma = math.abs(emaOf_zScore) - math.abs(maOf_zScore)
+trendVisualizer1 = math.sign(magnitudeDiffOf_ema_ma) * logRatioOf_ema_ma //+ massaged_negativeLogRatioOf_z_ema + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
+cookedUpIndicator = (math.exp(1 + trendVisualizer1) - math.e)
 plot(ta.ema(cookedUpIndicator, lengthMA), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
-//plot(cookedUpIndicator, color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+
+logRatioOf_ma_ema = math.log(math.abs(maOf_zScore)) / math.log(math.abs(emaOf_zScore))
+magnitudeDiffOf_ma_ema = math.abs(maOf_zScore) - math.abs(emaOf_zScore)
+trendVisualizer2 = math.sign(magnitudeDiffOf_ma_ema) * logRatioOf_ma_ema //+ massaged_negativeLogRatioOf_z_ema + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
+cookedUpIndicator2 = (math.exp(1 + trendVisualizer2) - math.e)
+plot(watteredDownStew * ta.ema(cookedUpIndicator + cookedUpIndicator2, lengthMA), color=color.gray, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+//plot((cookedUpIndicator), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")

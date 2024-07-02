@@ -1,8 +1,8 @@
 // @version=5
 indicator("Log Bollinger Bands %BB Oscillator [Krypt]", shorttitle="Log BB %B")
 
-length=input.int(187, title="Length")
-lengthMA=input.int(187, title="MA Length")
+length=input.int(60, title="Length")
+lengthMA=input.int(60, title="MA Length")
 multiplier = input.float(3.1416, title="StdDev")
 src=input.source(close, title="Source")
 showMA = input(false, title="Show Moving Average")
@@ -86,5 +86,5 @@ logRatioOf_ma_ema = math.log(math.abs(maOf_zScore)) / math.log(math.abs(emaOf_zS
 magnitudeDiffOf_ma_ema = math.abs(maOf_zScore) - math.abs(emaOf_zScore)
 trendVisualizer2 = math.sign(magnitudeDiffOf_ma_ema) * logRatioOf_ma_ema //+ massaged_negativeLogRatioOf_z_ema + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
 cookedUpIndicator2 = (math.exp(1 + trendVisualizer2) - math.e)
-plot(watteredDownStew * ta.ema(cookedUpIndicator + cookedUpIndicator2, lengthMA), color=color.gray, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+plot(watteredDownStew * ta.ema(cookedUpIndicator + cookedUpIndicator2, lengthMA*2), color=color.gray, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 //plot((cookedUpIndicator), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")

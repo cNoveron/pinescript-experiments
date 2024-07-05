@@ -3,20 +3,23 @@ indicator("Log Bollinger Bands %BB Oscillator [Krypt]", shorttitle="Log BB %B")
 
 
 length=input.int(60, title="Length")
-multiplier = input.float(3.1416, title="StdDev")
+multiplier = input.float(3.1416, title="StdDev multiplier")
 closePrice=input.source(close, title="Source")
 
 
 price = math.log(closePrice)
+maOf_price = ta.sma(price, length)
 stdDevOf_lnOf_price = ta.stdev(price, length)
-num = price + multiplier * stdDevOf_lnOf_price - ta.sma(price, length)
-bbWidth = 2 * multiplier * stdDevOf_lnOf_price
-zScoreOf_lnOf_price = 2 * (num / bbWidth) - 1
+upperBand = maOf_price + multiplier * stdDevOf_lnOf_price
+// lowerBand = maOf_price - multiplier * stdDevOf_lnOf_price
+normalizedPrice = price - maOf_price
+normalizedUpperBand = upperBand - maOf_price
+zScoreOf_lnOf_price = (normalizedPrice / normalizedUpperBand)
 
 
 
 offset = input(0, title="Offset")
-src = math.log(input(close, type=source, title="Source"))
+src = math.log(input.source(close, title="Source"))
 
 basis = ta.sma(src, length)
 dev = multiplier * ta.stdev(src, length)
@@ -54,8 +57,8 @@ invProp_deltaToStdDev = deltaOf_lnOf_price / stdDevOf_lnOf_price
 
 plot(zScoreOf_lnOf_price, color=color.white, linewidth=1, title="Z-Score of ")
 
-plot(maOf_zScore, color=#0000ff, title="Moving Average")
-plot(emaOf_zScore, color=#00ffff, title="EMA of Z-Score")
+// plot(maOf_zScore, color=#0000ff, title="Moving Average")
+// plot(emaOf_zScore, color=#00ffff, title="EMA of Z-Score")
 
 emaOf_inflatedZScore = ta.ema( zScoreOf_lnOf_price * inflators, length) // stdDevOf_lnOf_price
 plot(emaOf_inflatedZScore, color=color.green, title="EMA of Proportional Z-Score to StdDev Ratio", linewidth = 2)
@@ -64,7 +67,7 @@ plot(emaOf_inflatedZScore, color=color.green, title="EMA of Proportional Z-Score
 prettyGoodTrendChangeDetector = ta.ema(ta.cum(distanceOf_emaToMa), length) - math.log(1 + math.abs(zScoreOf_lnOf_price)) * stdDevOf_lnOf_price
 massaged_prettyGoodTrendChangeDetector_BTC = ta.ema(math.log(math.log(1 + math.abs(prettyGoodTrendChangeDetector))) * inflators, length)
 massaged_prettyGoodTrendChangeDetector = ta.ema(math.exp(math.log(math.abs(prettyGoodTrendChangeDetector)) - 1) - 2, length)
-plot(massaged_prettyGoodTrendChangeDetector_BTC, color=#ff00ff, title="(Massaged) Pretty Good Trend Change Detector")
+// plot(massaged_prettyGoodTrendChangeDetector_BTC, color=#ff00ff, title="(Massaged) Pretty Good Trend Change Detector")
 
 
 logRatioOf_deltas_z_ema = math.log(math.abs(deltaOf_zScoreOf_lnOf_price)) / math.log(math.abs(deltaOf_ema))
@@ -85,13 +88,13 @@ logRatioOf_ema_ma = math.log(math.abs(emaOf_zScore)) / math.log(math.abs(maOf_zS
 magnitudeDiffOf_ema_ma = math.abs(emaOf_zScore) - math.abs(maOf_zScore)
 trendVisualizer1 = math.sign(magnitudeDiffOf_ema_ma) * logRatioOf_ema_ma //+ massaged_negativeLogRatioOf_z_ema + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
 cookedUpIndicator = (math.exp(1 + trendVisualizer1) - math.e)
-plot(ta.ema(cookedUpIndicator, length), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+// plot(trendVisualizer1, color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 
 logRatioOf_ma_ema = math.log(math.abs(maOf_zScore)) / math.log(math.abs(emaOf_zScore))
 magnitudeDiffOf_ma_ema = math.abs(maOf_zScore) - math.abs(emaOf_zScore)
 trendVisualizer2 = math.sign(magnitudeDiffOf_ma_ema) * logRatioOf_ma_ema //+ massaged_negativeLogRatioOf_z_ema + emaOf_inflatedZScore + emaOf_zScore + maOf_zScore + zScoreOf_lnOf_price
 cookedUpIndicator2 = (math.exp(1 + trendVisualizer2) - math.e)
-plot(watteredDownStew * ta.ema(cookedUpIndicator + cookedUpIndicator2, length*2), color=color.gray, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
+plot(watteredDownStew * ta.ema(cookedUpIndicator + cookedUpIndicator2, length*2), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 //plot((cookedUpIndicator), color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 
 zero=hline(0, color=#808080, linestyle = hline.style_dotted)

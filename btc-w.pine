@@ -1,0 +1,103 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © cNoveron
+
+//@version=5
+strategy("My strategy", overlay=true, margin_long=100, margin_short=100)
+import TradingView/ta/7
+
+
+length=input.int(60, title="Length")
+multiplier = input.float(3.1416, title="StdDev multiplier")
+closePrice=input.source(close, title="Source")
+
+
+lnOf_price = math.log(closePrice)
+maOf_price = ta.sma(lnOf_price, length)
+stdDevOf_lnOf_price = ta.stdev(lnOf_price, length)
+upperBand = maOf_price + multiplier * stdDevOf_lnOf_price
+// lowerBand = maOf_price - multiplier * stdDevOf_lnOf_price
+normalizedPrice = lnOf_price - maOf_price
+normalizedUpperBand = upperBand - maOf_price
+zScoreOf_lnOf_price = (normalizedPrice / normalizedUpperBand)
+
+plot(zScoreOf_lnOf_price, color=color.white, linewidth=1, title="Z-Score of ")
+
+
+
+// ---------
+
+
+stSmaOf_zScore = ta.sma(zScoreOf_lnOf_price, 19)
+stEmaOf_zScore = ta.ema(zScoreOf_lnOf_price, 19)
+
+plot(stSmaOf_zScore, color=color.green, title="Moving Average", display = display.none)
+plot(stEmaOf_zScore, color=color.yellow, title="EMA of Z-Score", display = display.none)
+
+
+mtSmaOf_zScore = ta.sma(zScoreOf_lnOf_price, 60)
+mtEmaOf_zScore = ta.ema(zScoreOf_lnOf_price, 60)
+
+plot(mtSmaOf_zScore, color=#ff0000, title="MidTerm", display = display.none)
+plot(mtEmaOf_zScore, color=#ff00ff, title="MidTerm", display = display.none)
+
+longTerm = 60
+ltSmaOf_zScore = ta.sma(zScoreOf_lnOf_price, longTerm)
+ltEmaOf_zScore = ta.ema(zScoreOf_lnOf_price, longTerm)
+
+plot(ltSmaOf_zScore, color=#0000ff, title="MidTerm")
+plot(ltEmaOf_zScore, color=#00ffff, title="MidTerm")
+
+diffOf_ltEma_ltSma = ltEmaOf_zScore - ltSmaOf_zScore
+cumOf_diffOf_ltEma_ltSma = ta.cum(diffOf_ltEma_ltSma)
+
+delta19Of_cumOf_diffOf_ltEma_ltSma = cumOf_diffOf_ltEma_ltSma - cumOf_diffOf_ltEma_ltSma[19]
+plot(delta19Of_cumOf_diffOf_ltEma_ltSma, color=color.rgb(35, 70, 111), title="delta19Of_cumOf_diffOf_ltEma_ltSma")
+
+
+deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma = delta19Of_cumOf_diffOf_ltEma_ltSma - delta19Of_cumOf_diffOf_ltEma_ltSma[1]
+inflator = math.exp(1 + math.abs(zScoreOf_lnOf_price)) * math.exp(1 + math.abs(diffOf_ltEma_ltSma))
+inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma = inflator * deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma
+stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma = ta.ema(inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma, 19)
+deltaOf_stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma = stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma - stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma[1]
+plot(stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma, color=#4702a1, title="MidTerm")
+// THIS ONE LOOKS VERY GOOD FOR DETECTING BOTTOMS, BUT AS GOOD FOR MARKET TOPS; ALTHOUGH, ONLY ON THE WEEKLY
+
+deltaOf_lnOf_price = lnOf_price[0] - lnOf_price[1]
+
+deltaOf_zScoreOf_lnOf_price = zScoreOf_lnOf_price[0] - zScoreOf_lnOf_price[1]
+
+deltaOf_mtEma = mtEmaOf_zScore[0] - mtEmaOf_zScore[1]
+deltaOf_ltEma = ltEmaOf_zScore[0] - ltEmaOf_zScore[1]
+
+distanceOf_emaToMa = mtEmaOf_zScore - mtSmaOf_zScore
+
+inflators = ( 1 + math.abs(deltaOf_mtEma) ) * ( 1 + math.abs(deltaOf_lnOf_price) ) * ( 1 + math.abs(distanceOf_emaToMa) ) * ( 1 + math.abs(mtEmaOf_zScore) ) * ( 1 + math.abs(mtSmaOf_zScore) ) * ( 1 + stdDevOf_lnOf_price)
+
+emaOf_inflatedZScore = ta.ema(zScoreOf_lnOf_price, length) // stdDevOf_lnOf_price
+plot(emaOf_inflatedZScore, color=color.green, title="EMA of Proportional Z-Score to StdDev Ratio", linewidth = 2)
+
+
+logRatioOf_deltas_z_ema = math.log(math.abs(deltaOf_zScoreOf_lnOf_price)) / math.log(math.abs(deltaOf_mtEma))
+negativeLogRatioOf_z_ema = -math.sign(deltaOf_zScoreOf_lnOf_price) * logRatioOf_deltas_z_ema
+massaged_negativeLogRatioOf_z_ema = (ta.ema(math.exp(negativeLogRatioOf_z_ema) - 1, length)) + mtEmaOf_zScore + mtSmaOf_zScore
+bakedUp_negativeLogRatioOf_z_ema = (massaged_negativeLogRatioOf_z_ema + mtEmaOf_zScore + mtSmaOf_zScore) * inflators * stdDevOf_lnOf_price
+watteredDownStew = ta.ema(bakedUp_negativeLogRatioOf_z_ema, 60)
+plot(watteredDownStew, color=color.yellow, title="Massaged Negative LogRatio of Deltas: z, ema")
+
+
+// ---------
+
+zero=hline(0, color=#808080, linestyle = hline.style_dotted)
+ob=hline(1, color=#c0c0c0)
+os=hline(-1, color=#c0c0c0)
+fill(ob, os, color=color.new(#138484, 90))
+
+quantifier = math.exp(math.abs(stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma))
+
+longCondition = (stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma < -1)
+if (longCondition)
+    strategy.order("Long", strategy.long, quantifier)
+
+shortCondition = 1 < stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma[0]
+if (shortCondition)
+    strategy.order("Short", strategy.short, quantifier)

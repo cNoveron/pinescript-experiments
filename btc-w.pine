@@ -84,6 +84,23 @@ bakedUp_negativeLogRatioOf_z_ema = (massaged_negativeLogRatioOf_z_ema + mtEmaOf_
 watteredDownStew = ta.ema(bakedUp_negativeLogRatioOf_z_ema, 60)
 plot(watteredDownStew, color=color.yellow, title="Massaged Negative LogRatio of Deltas: z, ema")
 
+sma = stSmaOf_zScore
+ema = stEmaOf_zScore
+
+logRatioOf_ema_ma = math.log(math.abs(ema)) / math.log(math.abs(sma))
+magnitudeDiffOf_ema_ma = math.abs(ema) - math.abs(sma)
+trendVisualizer1 = math.sign(magnitudeDiffOf_ema_ma) * logRatioOf_ema_ma //+ massaged_negativeLogRatioOf_z_ema + emaOf_inflatedZScore + ema + maOf_zScore + zScoreOf_lnOf_price
+cookedUpIndicator = (math.exp(1 + trendVisualizer1) - math.e)
+
+logRatioOf_ma_ema = math.log(math.abs(sma)) / math.log(math.abs(ema))
+magnitudeDiffOf_ma_ema = math.abs(sma) - math.abs(ema)
+trendVisualizer2 = math.sign(magnitudeDiffOf_ma_ema) * logRatioOf_ma_ema
+cookedUpIndicator2 = (math.exp(1 + trendVisualizer2) - math.e)
+
+spicyWatteredDownStew = watteredDownStew * ta.ema(cookedUpIndicator + cookedUpIndicator2, length*2)
+deltaOf_spicyWatteredDownStew = spicyWatteredDownStew[0] - spicyWatteredDownStew[1]
+niceBuySellSignaller = ta.ema(10*deltaOf_spicyWatteredDownStew, 19) + emaOf_inflatedZScore
+plot(niceBuySellSignaller, color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 
 // ---------
 
@@ -92,12 +109,12 @@ ob=hline(1, color=#c0c0c0)
 os=hline(-1, color=#c0c0c0)
 fill(ob, os, color=color.new(#138484, 90))
 
-quantifier = math.exp(math.abs(watteredDownStew))
+quantifier = math.exp(math.abs(niceBuySellSignaller) * math.abs(stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma)) * (math.abs(emaOf_inflatedZScore))
 
-longCondition = (watteredDownStew < -1)
+longCondition = (niceBuySellSignaller < -1)
 if (longCondition)
     strategy.order("Long", strategy.long, quantifier)
 
-shortCondition = 1 < watteredDownStew
+shortCondition = 1 < niceBuySellSignaller
 if (shortCondition)
     strategy.order("Short", strategy.short, quantifier)

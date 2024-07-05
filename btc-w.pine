@@ -40,7 +40,7 @@ mtEmaOf_zScore = ta.ema(zScoreOf_lnOf_price, 60)
 plot(mtSmaOf_zScore, color=#ff0000, title="MidTerm", display = display.none)
 plot(mtEmaOf_zScore, color=#ff00ff, title="MidTerm", display = display.none)
 
-longTerm = 60
+longTerm = 187
 ltSmaOf_zScore = ta.sma(zScoreOf_lnOf_price, longTerm)
 ltEmaOf_zScore = ta.ema(zScoreOf_lnOf_price, longTerm)
 
@@ -74,7 +74,7 @@ distanceOf_emaToMa = mtEmaOf_zScore - mtSmaOf_zScore
 inflators = ( 1 + math.abs(deltaOf_mtEma) ) * ( 1 + math.abs(deltaOf_lnOf_price) ) * ( 1 + math.abs(distanceOf_emaToMa) ) * ( 1 + math.abs(mtEmaOf_zScore) ) * ( 1 + math.abs(mtSmaOf_zScore) ) * ( 1 + stdDevOf_lnOf_price)
 
 emaOf_inflatedZScore = ta.ema(zScoreOf_lnOf_price, length) // stdDevOf_lnOf_price
-plot(emaOf_inflatedZScore, color=color.green, title="EMA of Proportional Z-Score to StdDev Ratio", linewidth = 2)
+plot(stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma * emaOf_inflatedZScore, color=color.green, title="EMA of Proportional Z-Score to StdDev Ratio", linewidth = 2)
 
 
 logRatioOf_deltas_z_ema = math.log(math.abs(deltaOf_zScoreOf_lnOf_price)) / math.log(math.abs(deltaOf_mtEma))
@@ -92,12 +92,12 @@ ob=hline(1, color=#c0c0c0)
 os=hline(-1, color=#c0c0c0)
 fill(ob, os, color=color.new(#138484, 90))
 
-quantifier = math.exp(math.abs(stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma))
+quantifier = math.exp(math.abs(watteredDownStew))
 
-longCondition = (stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma < -1)
+longCondition = (watteredDownStew < -1)
 if (longCondition)
     strategy.order("Long", strategy.long, quantifier)
 
-shortCondition = 1 < stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma[0]
+shortCondition = 1 < watteredDownStew
 if (shortCondition)
     strategy.order("Short", strategy.short, quantifier)

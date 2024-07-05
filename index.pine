@@ -1,18 +1,31 @@
 // @version=5
 indicator("Log Bollinger Bands %BB Oscillator [Krypt]", shorttitle="Log BB %B")
 
+
 length=input.int(60, title="Length")
-length=input.int(60, title="MA Length")
 multiplier = input.float(3.1416, title="StdDev")
-src=input.source(close, title="Source")
+closePrice=input.source(close, title="Source")
 
 
-price = math.log(src)
+price = math.log(closePrice)
 stdDevOf_lnOf_price = ta.stdev(price, length)
 num = price + multiplier * stdDevOf_lnOf_price - ta.sma(price, length)
 bbWidth = 2 * multiplier * stdDevOf_lnOf_price
 zScoreOf_lnOf_price = 2 * (num / bbWidth) - 1
 
+
+
+offset = input(0, title="Offset")
+src = math.log(input(close, type=source, title="Source"))
+
+basis = ta.sma(src, length)
+dev = multiplier * ta.stdev(src, length)
+upper = basis + dev
+lower = basis - dev
+
+
+
+// ---------
 
 emaOf_zScore = ta.ema(zScoreOf_lnOf_price, length)
 maOf_zScore = ta.sma(zScoreOf_lnOf_price, length)

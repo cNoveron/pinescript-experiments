@@ -109,7 +109,9 @@ ob=hline(1, color=#c0c0c0)
 os=hline(-1, color=#c0c0c0)
 fill(ob, os, color=color.new(#138484, 90))
 
-quantifier = math.exp(math.abs(niceBuySellSignaller) * math.abs(stEmaOf_inflated_deltaOf_delta19Of_cumOf_diffOf_ltEma_ltSma)) * (math.abs(emaOf_inflatedZScore))
+// quantifier = math.exp(emaOf_inflatedZScore)
+quantifier = math.abs(niceBuySellSignaller)
+plot(quantifier, color=#be004c, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 
 longCondition = (niceBuySellSignaller < -1)
 if (longCondition)

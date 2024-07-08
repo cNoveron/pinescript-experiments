@@ -111,7 +111,7 @@ os=hline(-1, color=#c0c0c0)
 fill(ob, os, color=color.new(#138484, 90))
 
 // quantifier = math.exp(emaOf_inflatedZScore)
-quantifier = math.pow(math.abs(niceBuySellSignaller) - 0.5, 2)
+quantifier = math.pow(math.abs(niceBuySellSignaller) - 0.5, 2) / stdDevOf_lnOf_price
 plot(quantifier, color=#be004c, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 
 longCondition = niceBuySellSignaller < -1

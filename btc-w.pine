@@ -22,7 +22,8 @@ zScoreOf_lnOf_price = (normalizedPrice / normalizedUpperBand)
 
 plot(zScoreOf_lnOf_price, color=color.white, linewidth=1, title="Z-Score of ")
 
-
+pow4Of_zScoreOf_lnOf_price = math.sign(zScoreOf_lnOf_price - 0.05) * math.pow(zScoreOf_lnOf_price - 0.05, 4) * normalizedUpperBand
+plot(pow4Of_zScoreOf_lnOf_price, color=color.rgb(255, 50, 187), linewidth=1, title="pow4Of_zScoreOf_lnOf_price")
 
 // ---------
 
@@ -99,7 +100,7 @@ cookedUpIndicator2 = (math.exp(1 + trendVisualizer2) - math.e)
 
 spicyWatteredDownStew = watteredDownStew * ta.ema(cookedUpIndicator + cookedUpIndicator2, length*2)
 deltaOf_spicyWatteredDownStew = spicyWatteredDownStew[0] - spicyWatteredDownStew[1]
-niceBuySellSignaller = ta.ema(10*deltaOf_spicyWatteredDownStew, 19) + emaOf_inflatedZScore
+niceBuySellSignaller = (ta.ema(10*deltaOf_spicyWatteredDownStew, 19) + emaOf_inflatedZScore) + math.abs(pow4Of_zScoreOf_lnOf_price)
 plot(niceBuySellSignaller, color=color.orange, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 
 // ---------
@@ -110,10 +111,10 @@ os=hline(-1, color=#c0c0c0)
 fill(ob, os, color=color.new(#138484, 90))
 
 // quantifier = math.exp(emaOf_inflatedZScore)
-quantifier = math.abs(niceBuySellSignaller)
+quantifier = math.pow(math.abs(niceBuySellSignaller) - 0.5, 2)
 plot(quantifier, color=#be004c, title="Cummulative Exponential-to-Simple-MA Delta times StdDev")
 
-longCondition = (niceBuySellSignaller < -1)
+longCondition = niceBuySellSignaller < -1
 if (longCondition)
     strategy.order("Long", strategy.long, quantifier)
 

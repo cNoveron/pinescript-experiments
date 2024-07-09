@@ -22,8 +22,8 @@ zScoreOf_lnOf_price = (normalizedPrice / normalizedUpperBand)
 
 plot(zScoreOf_lnOf_price, color=color.white, linewidth=1, title="Z-Score of ")
 
-pow4Of_zScoreOf_lnOf_price = math.sign(zScoreOf_lnOf_price - 0.05) * math.pow(zScoreOf_lnOf_price - 0.05, 4) * normalizedUpperBand
-plot(pow4Of_zScoreOf_lnOf_price, color=color.rgb(255, 50, 187), linewidth=1, title="pow4Of_zScoreOf_lnOf_price")
+pow4Of_zScoreOf_lnOf_price = math.sign(zScoreOf_lnOf_price) * math.pow(zScoreOf_lnOf_price - 0.05, 4) * normalizedUpperBand
+plot(pow4Of_zScoreOf_lnOf_price, color=#ff485a, linewidth=1, title="pow4Of_zScoreOf_lnOf_price")
 
 // ---------
 
